@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- ===================== Seção: Início ===================== -->
+<section id="inicio" class="hero-section">
+    <div class="hero-grid-bg"></div>
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title">
+                Central de Informações<br>
+                <span class="hero-title-highlight">Apoio ao Cidadão</span>
+            </h1>
+
+            <form action="{% url 'servicos:lista' %}" method="get" class="hero-search-form">
+                <div class="hero-search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="q" class="form-control" placeholder="Busque por serviço ou categoria...">
+                    <button type="submit" class="btn btn-buscar">Buscar</button>
+                </div>
+            </form>
+
+            <p class="hero-subtitle">
+                Conectamos você a serviços socioassistenciais essenciais na capital paulista.<br>
+                Informação, ajuda, apoio e recursos em um só lugar.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== Seção: Categorias ===================== -->
+<section id="categorias" class="categorias-section">
+    <div class="container">
+        <h2 class="section-title text-center">Explorar categorias</h2>
+
+        <div class="row g-4 mt-2">
+            {% for categoria in categorias %}
+            <div class="col-md-6 col-lg-4">
+                <a href="{% url 'servicos:lista' %}?tipo={{ categoria.slug }}" class="categoria-card">
+                    <div class="categoria-icone">
+                        <i class="bi {{ categoria.icone }}"></i>
+                    </div>
+                    <div>
+                        <h3 class="categoria-nome">{{ categoria.nome }}</h3>
+                        <p class="categoria-descricao">{{ categoria.descricao }}</p>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted">Nenhuma categoria cadastrada no momento.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

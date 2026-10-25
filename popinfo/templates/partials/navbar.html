@@ -1,0 +1,54 @@
+{% load static %}
+<header class="site-header">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'core:home' %}">
+                <i class="bi bi-water"></i>
+                <span>PopInfo</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPopInfo" aria-controls="navbarPopInfo" aria-expanded="false" aria-label="Alternar navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarPopInfo">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.view_name == 'core:home' %}active{% endif %}" href="{% url 'core:home' %}">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:home' %}#categorias">Categorias</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.view_name == 'servicos:lista' %}active{% endif %}" href="{% url 'servicos:lista' %}">Serviços</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.view_name == 'core:sobre' %}active{% endif %}" href="{% url 'core:sobre' %}">Sobre</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.view_name == 'core:contato' %}active{% endif %}" href="{% url 'core:contato' %}">Contato</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2 navbar-actions">
+                    <button id="btn-tema" class="btn-tema" type="button" aria-label="Alternar tema claro/escuro">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+
+                    {% if request.user.is_authenticated %}
+                        <form action="{% url 'accounts:logout' %}" method="post" class="mb-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-area-restrita">
+                                <i class="bi bi-box-arrow-right"></i> Sair
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-area-restrita">
+                            <i class="bi bi-box-arrow-in-right"></i> Área Restrita
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Serviços — PopInfo{% endblock %}
+
+{% block content %}
+<section class="page-header text-center">
+    <div class="container">
+        <h1 class="page-title">Rede Socioassistencial</h1>
+        <p class="page-subtitle">
+            Encontre os serviços mais próximos de você. Consulte endereços, horários e
+            contatos das unidades de atendimento.
+        </p>
+    </div>
+</section>
+
+<section class="servicos-filtros">
+    <div class="container">
+        <form method="get" class="servicos-busca-form">
+            <div class="servicos-busca-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ termo_busca }}" class="form-control" placeholder="Busque por nome, bairro ou serviço...">
+                <button type="submit" class="btn btn-ver-mapa">
+                    <i class="bi bi-map"></i> Ver no Mapa
+                </button>
+            </div>
+
+            <div class="filtros-chips">
+                <a href="?tipo=todos" class="chip {% if tipo_selecionado == 'todos' %}chip-active{% endif %}">Todos</a>
+                {% for tipo in tipos_servico %}
+                    <a href="?tipo={{ tipo|urlencode }}" class="chip {% if tipo_selecionado == tipo %}chip-active{% endif %}">{{ tipo }}</a>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="servicos-lista">
+    <div class="container">
+        <div class="row g-4">
+            {% for servico in servicos %}
+            <div class="col-lg-6">
+                <article class="servico-card">
+                    <span class="badge-tipo">{{ servico.tipo_sigla }}</span>
+                    <h3 class="servico-nome">{{ servico.nome }}</h3>
+                    <p class="servico-descricao">{{ servico.descricao }}</p>
+
+                    <div class="servico-info">
+                        <i class="bi bi-geo-alt"></i>
+                        <div>
+                            <div class="servico-endereco">{{ servico.endereco }}</div>
+                            <div class="servico-bairro">{{ servico.bairro_cidade }}</div>
+                        </div>
+                    </div>
+
+                    <div class="servico-info">
+                        <i class="bi bi-clock"></i>
+                        <div>{{ servico.horario_funcionamento }}</div>
+                    </div>
+
+                    <div class="servico-info">
+                        <i class="bi bi-telephone"></i>
+                        <div>{{ servico.telefone }}</div>
+                    </div>
+
+                    {% if servico.tags %}
+                    <div class="servico-tags">
+                        {% for tag in servico.tags %}
+                            <span class="tag-pill">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="servicos-vazio text-center">
+                    <i class="bi bi-inbox"></i>
+                    <p>Nenhum serviço encontrado para os filtros selecionados.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
