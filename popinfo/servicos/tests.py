@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.urls import reverse
 from servicos.models import Servico, Categoria
 
 class ServicoModelTestCase(TestCase):
@@ -35,3 +36,39 @@ class ServicoModelTestCase(TestCase):
         self.assertEqual(servico.nome, 'CRAS Teste Sul')
         # Confirma se a categoria foi vinculada corretamente
         self.assertEqual(servico.categoria, self.categoria_teste)
+
+class ServicoIntegrationTestCase(TestCase):
+    """
+    Classe de testes de integração para verificar o fluxo completo
+    entre a View, o Modelo e o Template HTML de listagem de serviços.
+    """
+
+    def setUp(self):
+        """Prepara o cenário com uma categoria e uma unidade socioassistencial."""
+        self.categoria = Categoria.objects.create(
+            nome="Proteção Social Básica"
+        )
+        self.servico = Servico.objects.create(
+            nome="CRAS Vila Esperança",
+            descricao="Unidade de atendimento regional.",
+            endereco="Rua das Flores, 500",
+            telefone="(11) 88888-8888",
+            categoria=self.categoria
+        )
+
+    def test_fluxo_listagem_servicos_exibe_dados_no_html(self):
+        """
+        Testa se a página de listagem de serviços responde com sucesso (200 OK)
+        e se exibe corretamente o nome e o endereço do serviço cadastrado na tela.
+        """
+        # Faz uma requisição GET para a rota de listagem de serviços
+        response = self.client.get(reverse('servicos:lista'))
+
+        # 1. Verifica se a página carregou com sucesso
+        self.assertEqual(response.status_code, 200)
+
+        # 2. Verifica se o nome do serviço inserido aparece no HTML renderizado
+        self.assertContains(response, "CRAS Vila Esperança")
+
+        # 3. Verifica se o endereço também está presente na página
+        self.assertContains(response, "Rua das Flores, 500")
