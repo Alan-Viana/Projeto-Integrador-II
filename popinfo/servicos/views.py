@@ -7,7 +7,7 @@ template. Nenhuma regra de negócio ou consulta ao banco de dados deve
 existir diretamente aqui.
 """
 from django.views import View
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from .constants import TIPOS_SERVICO
 from .services import CategoriaService, ServicoService
@@ -36,5 +36,18 @@ class ServicoListView(View):
             "tipos_servico": TIPOS_SERVICO,
             "tipo_selecionado": tipo_selecionado,
             "termo_busca": termo_busca,
+        }
+        return render(request, self.template_name, context)
+    
+class ServicoDetailView(View):
+    """Exibe os detalhes de um serviço específico junto com seu mapa individual."""
+
+    template_name = "servicos/servico_detail.html"
+
+    def get(self, request, pk):
+        servico_service = ServicoService()
+        
+        context = {
+            "servico": servico_service.obter_por_id_para_exibicao(pk),
         }
         return render(request, self.template_name, context)

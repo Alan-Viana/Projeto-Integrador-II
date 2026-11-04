@@ -39,7 +39,7 @@
         <div class="row g-4">
             {% for servico in servicos %}
             <div class="col-lg-6">
-                <article class="servico-card">
+<a href="{% url 'servicos:servico_detail' servico.id %}" class="text-decoration-none card-link-wrapper">                <article class="servico-card">
                     <span class="badge-tipo">{{ servico.tipo_sigla }}</span>
                     <h3 class="servico-nome">{{ servico.nome }}</h3>
                     <p class="servico-descricao">{{ servico.descricao }}</p>

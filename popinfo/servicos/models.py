@@ -76,6 +76,15 @@ class Servico(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="Latitude do endereço para exibição no mapa."
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="Longitude do endereço para exibição no mapa."
+    )
+
     class Meta:
         verbose_name = "Serviço"
         verbose_name_plural = "Serviços"

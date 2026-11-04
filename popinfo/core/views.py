@@ -12,7 +12,8 @@ from servicos.services import CategoriaService
 
 from .forms import ContatoForm
 from .services import ContatoService
-
+from servicos.models import Servico
+import json
 
 class HomeView(View):
     """Página inicial: seção 'Início' (hero + busca) e 'Categorias'."""
@@ -57,3 +58,25 @@ class ContatoView(View):
 
         messages.error(request, "Verifique os campos destacados e tente novamente.")
         return render(request, self.template_name, {"form": form})
+
+import json
+from django.views import View
+from django.shortcuts import render
+from servicos.models import Servico  # Importa o model correto do app servicos
+
+class MapaUnidadesView(View):
+    """Página com o mapa de unidades e sistema de geolocalização dual."""
+
+    template_name = "core/mapa.html"
+
+    def get(self, request):
+        # Busca todos os serviços cadastrados no banco
+        servicos = Servico.objects.all()
+        
+        # Converte para lista de dicionários para o Leaflet ler com segurança
+        servicos_list = list(servicos.values('nome', 'endereco', 'latitude', 'longitude'))
+        
+        context = {
+            "unidades_json": json.dumps(servicos_list),
+        }
+        return render(request, self.template_name, context)

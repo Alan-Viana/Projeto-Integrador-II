@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Mapa de Unidades - Assistência Social</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; width: 100%; margin-top: 15px; border-radius: 8px; }
+        .controles { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1>Mapa de Unidades de Assistência Social</h1>
+
+    <!-- Controles -->
+    <div class="controles">
+        <button id="btn-gps" type="button">Usar minha localização atual (GPS)</button>
+        <br><br>
+        <input type="text" id="input-endereco" placeholder="Digite seu endereço ou CEP em SP..." style="width: 300px;">
+        <button id="btn-endereco" type="button">Buscar Endereço</button>
+    </div>
+
+    <!-- Container do Mapa -->
+    <div id="map"></div>
+
+    <!-- Injeta o JSON de forma segura gerada pelo Django -->
+    {{ unidades_json|json_script:"unidades-data" }}
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([-23.5505, -46.6333], 12);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        // Lê os dados do JSON com segurança no JavaScript
+        var unidades = JSON.parse(document.getElementById('unidades-data').textContent);
+
+        unidades.forEach(function(unidade) {
+            if (unidade.latitude && unidade.longitude) {
+                L.marker([unidade.latitude, unidade.longitude])
+                  .addTo(map)
+                  .bindPopup("<b>" + unidade.nome + "</b><br>" + unidade.endereco);
+            }
+        });
+
+        // Lógica do GPS do navegador
+        document.getElementById('btn-gps').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    
+                    map.setView([lat, lng], 15);
+                    L.marker([lat, lng]).addTo(map)
+                      .bindPopup("Sua localização atual").openPopup();
+                }, function(error) {
+                    alert("Erro ao obter geolocalização: " + error.message);
+                });
+            } else {
+                alert("Geolocalização não é suportada pelo seu navegador.");
+            }
+        });
+
+        // Lógica de busca manual por endereço ou CEP
+        document.getElementById('btn-endereco').addEventListener('click', function() {
+            var query = document.getElementById('input-endereco').value.trim();
+            if (!query) {
+                alert("Por favor, digite um endereço ou CEP.");
+                return;
+            }
+
+            // Adiciona contexto para focar as buscas em São Paulo/Brasil
+            var searchQuery = query + ", São Paulo, Brasil";
+            var url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        var lat = data[0].lat;
+                        var lon = data[0].lon;
+                        var displayName = data[0].display_name;
+
+                        // Centraliza o mapa no endereço encontrado e adiciona um marcador
+                        map.setView([lat, lon], 15);
+                        L.marker([lat, lon]).addTo(map)
+                          .bindPopup("<b>Local Buscado:</b><br>" + displayName)
+                          .openPopup();
+                    } else {
+                        alert("Endereço não encontrado. Tente digitar de forma mais específica.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao buscar endereço:", error);
+                    alert("Ocorreu um erro ao consultar o endereço.");
+                });
+        });
+    </script>
+</body>
+</html>

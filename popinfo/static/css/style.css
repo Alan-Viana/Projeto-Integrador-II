@@ -616,3 +616,20 @@ a { text-decoration: none; }
     .navbar-actions { margin: 1rem 0 0; justify-content: space-between; width: 100%; }
     .navbar-nav { text-align: center; }
 }
+
+.card-link-wrapper {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+.card-link-wrapper:hover {
+    color: inherit;
+    text-decoration: none;
+}
+.card-link-wrapper .servico-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-link-wrapper:hover .servico-card {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}

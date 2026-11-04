@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ servico.nome }} - PopInfo{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Cabeçalho com o nome do serviço -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'servicos:lista' %}" class="text-decoration-none">Início</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ servico.nome }}</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold text-dark">{{ servico.nome }}</h1>
+            <p class="text-muted fs-5"><i class="bi bi-geo-alt text-danger me-2"></i>{{ servico.endereco }}, {{ servico.numero }}</p>
+        </div>
+    </div>
+
+    <!-- Layout em grelha: Detalhes à esquerda e Mapa à direita -->
+    <div class="row g-4">
+        <!-- Coluna de Informações -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h4 class="fw-semibold mb-3 text-secondary">Detalhes da Unidade</h4>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-3">
+                        <strong class="d-block text-muted small">Telefone:</strong>
+                        <span class="fs-6 text-dark">{{ servico.telefone|default:"Não informado" }}</span>
+                    </li>
+                    <li class="mb-3">
+                        <strong class="d-block text-muted small">Categoria:</strong>
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ servico.categoria|default:"Assistência Social" }}</span>
+                    </li>
+                    <li class="mb-3">
+                        <strong class="d-block text-muted small">Endereço Completo:</strong>
+                        <span class="text-dark">{{ servico.endereco }}, {{ servico.numero }} - São Paulo/SP</span>
+                    </li>
+                </ul>
+                <a href="{% url 'servicos:lista' %}" class="btn btn-outline-secondary mt-auto w-100 rounded-pill">
+                    <i class="bi bi-arrow-left me-2"></i> Voltar à Lista
+                </a>
+            </div>
+        </div>
+
+        <!-- Coluna do Mapa -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="card-title fw-semibold m-0 text-secondary">
+                        <i class="bi bi-map text-primary me-2"></i> Localização Oficial (GeoSampa / PMSP)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Contêiner do mapa com altura fixa de 400px -->
+                    <div id="map" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- Esri Leaflet (Compatível com os serviços de mapas e feições da PMSP/GeoSampa) -->
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" crossorigin=""></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Captura segura de coordenadas para evitar erros caso venham vazias da BD
+        var rawLat = "{{ servico.latitude|default:'' }}";
+        var rawLng = "{{ servico.longitude|default:'' }}";
+
+        var lat = rawLat ? parseFloat(rawLat.replace(',', '.')) : -23.5880;
+        var lng = rawLng ? parseFloat(rawLng.replace(',', '.')) : -46.6324;
+
+        // Inicializa o mapa centrado no local do serviço
+        var map = L.map('map').setView([lat, lng], 16);
+
+        // Camada base padrão otimizada para o padrão corporativo de mapas de SP
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Prefeitura de São Paulo / GeoSampa'
+        }).addTo(map);
+
+        // Adiciona o marcador exato da unidade com popup informativo
+        var marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup("<b>{{ servico.nome }}</b><br>{{ servico.endereco }}").openPopup();
+
+        // Força a atualização do tamanho do mapa no layout
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 150);
+    });
+</script>
+{% endblock %}

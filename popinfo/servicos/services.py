@@ -11,8 +11,10 @@ templates da estrutura interna das entidades do banco de dados.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from django.shortcuts import get_object_or_404
 
 from .repositories import CategoriaRepository, ServicoRepository
+from .models import Servico
 
 
 @dataclass(frozen=True)
@@ -29,6 +31,7 @@ class CategoriaViewModel:
 class ServicoCardViewModel:
     """Representação de um serviço pronta para exibição em um card."""
 
+    id: int  # <-- Adicionado para permitir o link nos cards
     tipo_sigla: str
     nome: str
     descricao: str
@@ -37,6 +40,25 @@ class ServicoCardViewModel:
     horario_funcionamento: str
     telefone: str
     tags: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class ServicoDetailViewModel:
+    """Representação completa de um serviço para a página de detalhes com mapa."""
+
+    id: int
+    tipo_sigla: str
+    nome: str
+    descricao: str
+    endereco: str
+    bairro: str
+    cidade: str
+    horario_funcionamento: str
+    telefone: str
+    tags: list[str]
+    latitude: float | None
+    longitude: float | None
+    categoria_nome: str
 
 
 class CategoriaService:
@@ -86,9 +108,30 @@ class ServicoService:
 
         return [self._para_view_model(servico) for servico in servicos]
 
+    def obter_por_id_para_exibicao(self, servico_id: int) -> ServicoDetailViewModel:
+        """Busca um serviço específico pelo ID para a página de detalhes com mapa."""
+        servico = get_object_or_404(Servico, pk=servico_id)
+
+        return ServicoDetailViewModel(
+            id=servico.id,
+            tipo_sigla=servico.tipo_sigla,
+            nome=servico.nome,
+            descricao=servico.descricao,
+            endereco=servico.endereco,
+            bairro=servico.bairro,
+            cidade=servico.cidade,
+            horario_funcionamento=servico.horario_funcionamento,
+            telefone=servico.telefone,
+            tags=servico.lista_tags(),
+            latitude=float(servico.latitude) if servico.latitude else None,
+            longitude=float(servico.longitude) if servico.longitude else None,
+            categoria_nome=servico.categoria.nome,
+        )
+
     @staticmethod
     def _para_view_model(servico) -> ServicoCardViewModel:
         return ServicoCardViewModel(
+            id=servico.id,
             tipo_sigla=servico.tipo_sigla,
             nome=servico.nome,
             descricao=servico.descricao,
