@@ -1,9 +1,10 @@
+{% load static %}
 <footer class="site-footer">
     <div class="container text-center">
         <a href="{% url 'core:home' %}" class="footer-brand">
-            <i class="bi bi-water"></i>
+            <img src="{% static 'images/logo.png' %}?v=20261108" alt="PopInfo" class="brand-logo">
             <span>PopInfo</span>
         </a>
-        <p class="footer-text">Projeto de portfólio &bull; &copy; 2026 &bull; v2.0</p>
+        <p class="footer-text">Projeto Integrador II 2026</p>
     </div>
 </footer>

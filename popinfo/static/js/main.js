@@ -1,62 +1,14 @@
 /**
- * PopInfo — script principal do front-end.
- *
- * Responsabilidades:
- *  - Alternar entre tema claro/escuro e persistir a preferência do usuário;
- *  - Exibir/ocultar o botão flutuante de "voltar ao topo" conforme o scroll.
+ * PopInfo — interações globais da interface.
  */
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "popinfo-tema";
-    var htmlElement = document.documentElement;
-    var botaoTema = document.getElementById("btn-tema");
-
-    function obterIconeTema(tema) {
-        return tema === "dark" ? "bi-sun" : "bi-moon-stars";
-    }
-
-    function aplicarTema(tema) {
-        htmlElement.setAttribute("data-bs-theme", tema);
-        if (botaoTema) {
-            var icone = botaoTema.querySelector("i");
-            if (icone) {
-                icone.className = "bi " + obterIconeTema(tema);
-            }
-        }
-    }
-
-    function inicializarTema() {
-        var temaSalvo = window.localStorage.getItem(STORAGE_KEY);
-        var preferenciaSistema = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        aplicarTema(temaSalvo || preferenciaSistema);
-    }
-
-    function alternarTema() {
-        var temaAtual = htmlElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
-        var novoTema = temaAtual === "dark" ? "light" : "dark";
-        aplicarTema(novoTema);
-        window.localStorage.setItem(STORAGE_KEY, novoTema);
-    }
-
-    if (botaoTema) {
-        botaoTema.addEventListener("click", alternarTema);
-    }
-
-    inicializarTema();
-
-    // ---------------------------------------------------------------------
-    // Botão flutuante: voltar ao topo
-    // ---------------------------------------------------------------------
     var botaoTopo = document.getElementById("btn-voltar-topo");
 
     function atualizarVisibilidadeBotaoTopo() {
         if (!botaoTopo) { return; }
-        if (window.scrollY > 400) {
-            botaoTopo.classList.add("visivel");
-        } else {
-            botaoTopo.classList.remove("visivel");
-        }
+        botaoTopo.classList.toggle("visivel", window.scrollY > 400);
     }
 
     if (botaoTopo) {
@@ -66,4 +18,37 @@
         window.addEventListener("scroll", atualizarVisibilidadeBotaoTopo);
         atualizarVisibilidadeBotaoTopo();
     }
+
+    document.addEventListener("click", function (event) {
+        var link = event.target.closest("a");
+        if (!link || link.origin !== window.location.origin) { return; }
+
+        var destino = new URL(link.href);
+        if (destino.pathname !== window.location.pathname) { return; }
+
+        var comportamento = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth";
+
+        event.preventDefault();
+        if (destino.hash) {
+            var secao = document.querySelector(destino.hash);
+            if (!secao) { return; }
+
+            var menu = document.getElementById("navbarPopInfo");
+            var rolarAteSecao = function () {
+                secao.scrollIntoView({ behavior: comportamento, block: "start" });
+            };
+
+            if (menu && menu.classList.contains("show") && window.bootstrap) {
+                menu.addEventListener("hidden.bs.collapse", rolarAteSecao, { once: true });
+                window.bootstrap.Collapse.getOrCreateInstance(menu).hide();
+            } else {
+                rolarAteSecao();
+            }
+        } else {
+            window.scrollTo({ top: 0, behavior: comportamento });
+        }
+        window.history.pushState(null, "", destino.hash || destino.pathname);
+    });
 })();

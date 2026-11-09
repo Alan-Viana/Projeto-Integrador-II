@@ -2,34 +2,33 @@
 {% load static %}
 
 {% block content %}
-
-<!-- ===================== Seção: Início ===================== -->
 <section id="inicio" class="hero-section">
-    <div class="hero-grid-bg"></div>
     <div class="container">
         <div class="hero-content text-center">
+            <div class="hero-location-icon" aria-hidden="true">
+                <i class="bi bi-geo-alt-fill"></i>
+            </div>
             <h1 class="hero-title">
-                Central de Informações<br>
-                <span class="hero-title-highlight">Apoio ao Cidadão</span>
+                <span class="hero-title-main">Central de Informações</span><br>
+                <span class="destaque-cursivo">Apoio ao Cidadão</span>
             </h1>
+
+            <p class="hero-subtitle">
+                Conectamos você a serviços socioassistenciais essenciais na capital paulista.<br class="hero-subtitle-break">
+                Informação, ajuda, apoio e recursos em um só lugar.
+            </p>
 
             <form action="{% url 'servicos:lista' %}" method="get" class="hero-search-form">
                 <div class="hero-search-box">
-                    <i class="bi bi-search"></i>
-                    <input type="text" name="q" class="form-control" placeholder="Busque por serviço ou categoria...">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="text" name="q" class="form-control" placeholder="Busque por serviço ou categoria..." aria-label="Busque por serviço ou categoria">
                     <button type="submit" class="btn btn-buscar">Buscar</button>
                 </div>
             </form>
-
-            <p class="hero-subtitle">
-                Conectamos você a serviços socioassistenciais essenciais na capital paulista.<br>
-                Informação, ajuda, apoio e recursos em um só lugar.
-            </p>
         </div>
     </div>
 </section>
 
-<!-- ===================== Seção: Categorias ===================== -->
 <section id="categorias" class="categorias-section">
     <div class="container">
         <h2 class="section-title text-center">Explorar categorias</h2>
@@ -55,5 +54,4 @@
         </div>
     </div>
 </section>
-
 {% endblock %}

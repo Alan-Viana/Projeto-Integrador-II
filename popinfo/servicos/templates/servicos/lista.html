@@ -5,7 +5,7 @@
 {% block content %}
 <section class="page-header text-center">
     <div class="container">
-        <h1 class="page-title">Rede Socioassistencial</h1>
+        <h1 class="page-title servicos-page-title">Rede Socioassistencial</h1>
         <p class="page-subtitle">
             Encontre os serviços mais próximos de você. Consulte endereços, horários e
             contatos das unidades de atendimento.
@@ -39,7 +39,8 @@
         <div class="row g-4">
             {% for servico in servicos %}
             <div class="col-lg-6">
-<a href="{% url 'servicos:servico_detail' servico.id %}" class="text-decoration-none card-link-wrapper">                <article class="servico-card">
+                <a href="{% url 'servicos:servico_detail' servico.id %}" class="text-decoration-none card-link-wrapper">
+                    <article class="servico-card">
                     <span class="badge-tipo">{{ servico.tipo_sigla }}</span>
                     <h3 class="servico-nome">{{ servico.nome }}</h3>
                     <p class="servico-descricao">{{ servico.descricao }}</p>
@@ -69,7 +70,8 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                </article>
+                    </article>
+                </a>
             </div>
             {% empty %}
             <div class="col-12">
