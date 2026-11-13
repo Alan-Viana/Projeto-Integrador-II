@@ -29,7 +29,7 @@
     </div>
 </section>
 
-{{ unidades_json|json_script:"unidades-data" }}
+{{ unidades|json_script:"unidades-data" }}
 {% endblock %}
 
 {% block extra_js %}
@@ -44,12 +44,22 @@
     }).addTo(map);
 
     var unidades = JSON.parse(document.getElementById('unidades-data').textContent);
+    var urlDetalheBase = "{% url 'servicos:lista' %}";
     unidades.forEach(function(unidade) {
-        if (unidade.latitude && unidade.longitude) {
-            L.marker([unidade.latitude, unidade.longitude])
-                .addTo(map)
-                .bindPopup('<b>' + unidade.nome + '</b><br>' + unidade.endereco);
-        }
+        // Popup montado com nós de texto (evita injeção de HTML)
+        var popup = document.createElement('div');
+        var titulo = document.createElement('b');
+        titulo.textContent = unidade.sigla + ' — ' + unidade.nome;
+        popup.appendChild(titulo);
+        popup.appendChild(document.createElement('br'));
+        popup.appendChild(document.createTextNode(unidade.endereco));
+        popup.appendChild(document.createElement('br'));
+        var link = document.createElement('a');
+        link.href = urlDetalheBase + unidade.id + '/';
+        link.textContent = 'Ver detalhes';
+        popup.appendChild(link);
+
+        L.marker([unidade.latitude, unidade.longitude]).addTo(map).bindPopup(popup);
     });
 
     document.getElementById('btn-gps').addEventListener('click', function() {

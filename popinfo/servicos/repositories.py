@@ -9,9 +9,9 @@ repositório por um "fake" em memória) e futuras trocas de fonte de dados.
 """
 from __future__ import annotations
 
-from django.db.models import Q, QuerySet
+from django.db.models import Prefetch, Q, QuerySet
 
-from .models import Categoria, Servico
+from .models import Acao, Categoria, Servico, Unidade
 
 
 class CategoriaRepository:
@@ -25,21 +25,56 @@ class CategoriaRepository:
 
 
 class ServicoRepository:
-    """Acesso a dados da entidade Servico."""
+    """Acesso a dados da entidade Servico (tipos de serviço)."""
 
     def listar_ativos(self) -> QuerySet[Servico]:
         return Servico.objects.filter(ativo=True).select_related("categoria")
 
-    def buscar_por_categoria(self, categoria_slug: str) -> QuerySet[Servico]:
-        return self.listar_ativos().filter(categoria__slug=categoria_slug)
+    def listar_siglas_com_unidades(self) -> list[str]:
+        """Siglas dos serviços que possuem ao menos uma unidade ativa."""
+        return list(
+            self.listar_ativos()
+            .filter(unidades__ativo=True)
+            .values_list("sigla", flat=True)
+            .distinct()
+            .order_by("sigla")
+        )
 
-    def buscar_por_tipo(self, tipo_sigla: str) -> QuerySet[Servico]:
-        return self.listar_ativos().filter(tipo_sigla__iexact=tipo_sigla)
 
-    def buscar_por_termo(self, termo: str) -> QuerySet[Servico]:
-        return self.listar_ativos().filter(
+class UnidadeRepository:
+    """Acesso a dados da entidade Unidade (locais de atendimento)."""
+
+    def listar_ativas(self) -> QuerySet[Unidade]:
+        acoes_ativas = Prefetch(
+            "servico__acoes", queryset=Acao.objects.filter(ativo=True)
+        )
+        return (
+            Unidade.objects.filter(ativo=True, servico__ativo=True)
+            .select_related("servico", "servico__categoria")
+            .prefetch_related(acoes_ativas)
+        )
+
+    def buscar_por_id(self, unidade_id: int) -> Unidade | None:
+        return self.listar_ativas().filter(pk=unidade_id).first()
+
+    def buscar_por_categoria(self, categoria_slug: str) -> QuerySet[Unidade]:
+        return self.listar_ativas().filter(servico__categoria__slug=categoria_slug)
+
+    def buscar_por_sigla(self, sigla: str) -> QuerySet[Unidade]:
+        return self.listar_ativas().filter(servico__sigla__iexact=sigla)
+
+    def buscar_por_termo(self, termo: str) -> QuerySet[Unidade]:
+        return self.listar_ativas().filter(
             Q(nome__icontains=termo)
             | Q(bairro__icontains=termo)
-            | Q(tags__icontains=termo)
-            | Q(tipo_sigla__icontains=termo)
+            | Q(subprefeitura__icontains=termo)
+            | Q(servico__sigla__icontains=termo)
+            | Q(servico__nome__icontains=termo)
+            | Q(servico__categoria__nome__icontains=termo)
+            | Q(servico__acoes__nome__icontains=termo)
+        ).distinct()
+
+    def listar_com_coordenadas(self) -> QuerySet[Unidade]:
+        return self.listar_ativas().filter(
+            latitude__isnull=False, longitude__isnull=False
         )

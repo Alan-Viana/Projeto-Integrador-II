@@ -36,7 +36,7 @@
         <div class="row g-4 mt-2">
             {% for categoria in categorias %}
             <div class="col-md-6 col-lg-4">
-                <a href="{% url 'servicos:lista' %}?tipo={{ categoria.slug }}" class="categoria-card">
+                <a href="{% url 'servicos:lista' %}?categoria={{ categoria.slug }}" class="categoria-card">
                     <div class="categoria-icone">
                         <i class="bi {{ categoria.icone }}"></i>
                     </div>

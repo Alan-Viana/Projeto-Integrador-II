@@ -6,48 +6,41 @@ trabalho para a camada de Service e apenas preparam o contexto para o
 template. Nenhuma regra de negócio ou consulta ao banco de dados deve
 existir diretamente aqui.
 """
+from django.shortcuts import render
 from django.views import View
-from django.shortcuts import render, get_object_or_404
 
-from .constants import TIPOS_SERVICO
-from .services import CategoriaService, ServicoService
+from .services import CategoriaService, ServicoService, UnidadeService
 
 
-class ServicoListView(View):
-    """Exibe a listagem pública de serviços socioassistenciais, com filtros."""
+class UnidadeListView(View):
+    """Exibe a listagem pública das unidades de atendimento, com filtros."""
 
     template_name = "servicos/lista.html"
 
     def get(self, request):
         categoria_slug = request.GET.get("categoria")
-        tipo_selecionado = request.GET.get("tipo", "todos")
+        sigla_selecionada = request.GET.get("tipo", "todos")
         termo_busca = request.GET.get("q", "").strip()
 
-        servico_service = ServicoService()
-        categoria_service = CategoriaService()
-
         context = {
-            "servicos": servico_service.listar_para_exibicao(
+            "unidades": UnidadeService().listar_para_exibicao(
                 categoria_slug=categoria_slug,
-                tipo=tipo_selecionado,
+                sigla=sigla_selecionada,
                 termo=termo_busca or None,
             ),
-            "categorias": categoria_service.listar_categorias(),
-            "tipos_servico": TIPOS_SERVICO,
-            "tipo_selecionado": tipo_selecionado,
+            "categorias": CategoriaService().listar_categorias(),
+            "tipos_servico": ServicoService().listar_siglas_para_filtro(),
+            "tipo_selecionado": sigla_selecionada,
             "termo_busca": termo_busca,
         }
         return render(request, self.template_name, context)
-    
-class ServicoDetailView(View):
-    """Exibe os detalhes de um serviço específico junto com seu mapa individual."""
 
-    template_name = "servicos/servico_detail.html"
+
+class UnidadeDetailView(View):
+    """Exibe os detalhes de uma unidade junto com seu mapa individual."""
+
+    template_name = "servicos/unidade_detail.html"
 
     def get(self, request, pk):
-        servico_service = ServicoService()
-        
-        context = {
-            "servico": servico_service.obter_por_id_para_exibicao(pk),
-        }
+        context = {"unidade": UnidadeService().obter_detalhe(pk)}
         return render(request, self.template_name, context)

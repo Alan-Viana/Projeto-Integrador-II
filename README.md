@@ -56,19 +56,34 @@ Essa separação está aplicada, por exemplo, no app `servicos/`:
 
 ```
 servicos/
-├── models.py          # Entity  (Categoria, Servico)
-├── repositories.py    # Repository (CategoriaRepository, ServicoRepository)
-├── services.py        # Service + ViewModels (CategoriaService, ServicoService)
-├── views.py           # Controller (ServicoListView)
-├── constants.py       # Constantes de domínio (tipos de serviço)
+├── models.py          # Entity  (Categoria, Servico, Acao, Unidade)
+├── repositories.py    # Repository (Categoria/Servico/UnidadeRepository)
+├── services.py        # Service + ViewModels (Categoria/Servico/UnidadeService)
+├── views.py           # Controller (UnidadeListView, UnidadeDetailView)
 ├── admin.py
 ├── urls.py
 ├── migrations/
 │   ├── 0001_initial.py
-│   └── 0002_seed_data.py   # dados de exemplo (1 categoria + 1 serviço)
+│   └── 0002_dados_iniciais.py   # categorias + catálogo de tipos de serviço
 └── templates/servicos/
-    └── lista.html
+    ├── lista.html
+    └── unidade_detail.html
 ```
+
+### Modelo de dados
+
+```
+Categoria 1 ── N Servico 1 ── N Acao
+                     │
+                     1 ── N Unidade
+```
+
+| Entidade    | O que representa | Exemplo |
+|-------------|------------------|---------|
+| `Categoria` | Agrupamento exibido na página inicial | Acolhimento |
+| `Servico`   | **Tipo** de serviço (Tipificação Nacional do SUAS), com público-alvo, forma de acesso e documentos exigidos | CRAS, CREAS, CTA |
+| `Acao`      | O que o tipo de serviço oferece (exibido como etiquetas no card) | Pernoite, Banho, Cadastro Único |
+| `Unidade`   | **Local físico** de atendimento: endereço, região, telefone, horário, coordenadas do mapa e origem do dado | CRAS Butantã |
 
 ### Organização dos apps Django
 
@@ -79,20 +94,19 @@ servicos/
   dados nas próximas etapas.
 - **`accounts/`** — autenticação da "Área Restrita" (login/logout).
 
-### Sobre os dados de exemplo
+### Sobre os dados iniciais
 
-Para que a página de Serviços já demonstre o template do card com dados
-reais (e não apenas HTML estático), foi criada uma *migration* de dados
-(`servicos/migrations/0002_seed_data.py`) que insere:
+A *migration* de dados `servicos/migrations/0002_dados_iniciais.py` cria
+as 6 categorias da página inicial e o catálogo de tipos de serviço
+(CRAS, CREAS, Centro POP, CA, NCI, CCA, CAPS, UBS, Bom Prato, Cate)
+com suas ações. A migration `0003_importar_unidades.py` carrega as
+**1.477 unidades reais** de `servicos/dados/unidades.csv` (fontes: SMADS
+dados abertos dez/2025, CNES/Ministério da Saúde, páginas oficiais da
+SMADS, Bom Prato e Cate).
 
-- as 6 categorias exibidas na página inicial (CAPS, Acolhimento, Saúde,
-  Alimentação, Rede Socioassistencial, Emprego);
-- 1 serviço de exemplo ("Centro Temporário de Acolhimento Vila Mariana"),
-  usado apenas como referência de layout.
-
-O cadastro completo dos demais serviços será feito futuramente via banco
-de dados (painel administrativo do Django ou API), sem necessidade de
-alterar o template.
+> **Atenção (quem já tinha o banco local):** as migrations foram
+> recriadas nesta versão. Apague o arquivo `db.sqlite3` e rode
+> `python manage.py migrate` novamente.
 
 ---
 

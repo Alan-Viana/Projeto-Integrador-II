@@ -11,10 +11,11 @@ templates da estrutura interna das entidades do banco de dados.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from django.shortcuts import get_object_or_404
 
-from .repositories import CategoriaRepository, ServicoRepository
-from .models import Servico
+from django.http import Http404
+
+from .models import Unidade
+from .repositories import CategoriaRepository, ServicoRepository, UnidadeRepository
 
 
 @dataclass(frozen=True)
@@ -28,37 +29,60 @@ class CategoriaViewModel:
 
 
 @dataclass(frozen=True)
-class ServicoCardViewModel:
-    """Representação de um serviço pronta para exibição em um card."""
+class UnidadeCardViewModel:
+    """Representação de uma unidade pronta para exibição em um card."""
 
-    id: int  # <-- Adicionado para permitir o link nos cards
-    tipo_sigla: str
+    id: int
+    sigla: str
     nome: str
     descricao: str
     endereco: str
     bairro_cidade: str
     horario_funcionamento: str
     telefone: str
-    tags: list[str] = field(default_factory=list)
+    acoes: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
-class ServicoDetailViewModel:
-    """Representação completa de um serviço para a página de detalhes com mapa."""
+class UnidadeDetailViewModel:
+    """Representação completa de uma unidade para a página de detalhes com mapa."""
 
     id: int
-    tipo_sigla: str
     nome: str
     descricao: str
     endereco: str
     bairro: str
+    cep: str
     cidade: str
+    subprefeitura: str
+    regiao: str
     horario_funcionamento: str
     telefone: str
-    tags: list[str]
+    email: str
+    organizacao_gestora: str
     latitude: float | None
     longitude: float | None
+    acoes: list[str]
+    # Dados do tipo de serviço
+    sigla: str
+    servico_nome: str
+    nivel_protecao: str
+    publico_alvo: str
+    como_acessar: str
+    documentos_necessarios: str
     categoria_nome: str
+
+
+@dataclass(frozen=True)
+class UnidadeMapaViewModel:
+    """Dados mínimos de uma unidade para o marcador no mapa (serializável em JSON)."""
+
+    id: int
+    nome: str
+    sigla: str
+    endereco: str
+    latitude: float
+    longitude: float
 
 
 class CategoriaService:
@@ -80,64 +104,107 @@ class CategoriaService:
 
 
 class ServicoService:
-    """Regras de negócio relacionadas aos serviços socioassistenciais."""
+    """Regras de negócio relacionadas aos tipos de serviço."""
 
     def __init__(self, repository: ServicoRepository | None = None) -> None:
         self._repository = repository or ServicoRepository()
 
+    def listar_siglas_para_filtro(self) -> list[str]:
+        """Siglas exibidas nos filtros rápidos (apenas as que têm unidades)."""
+        return self._repository.listar_siglas_com_unidades()
+
+
+class UnidadeService:
+    """Regras de negócio relacionadas às unidades de atendimento."""
+
+    def __init__(self, repository: UnidadeRepository | None = None) -> None:
+        self._repository = repository or UnidadeRepository()
+
     def listar_para_exibicao(
         self,
         categoria_slug: str | None = None,
-        tipo: str | None = None,
+        sigla: str | None = None,
         termo: str | None = None,
-    ) -> list[ServicoCardViewModel]:
-        """Retorna os serviços a serem exibidos, aplicando filtros opcionais.
+    ) -> list[UnidadeCardViewModel]:
+        """Retorna as unidades a serem exibidas, aplicando filtros opcionais.
 
         A prioridade de aplicação dos filtros é: termo de busca livre >
-        categoria (usada pelos cards da página inicial) > tipo (usado
-        pelos filtros rápidos da página de Serviços) > todos os ativos.
+        categoria (usada pelos cards da página inicial) > sigla do serviço
+        (usada pelos filtros rápidos da página de Serviços) > todas as ativas.
         """
         if termo:
-            servicos = self._repository.buscar_por_termo(termo)
+            unidades = self._repository.buscar_por_termo(termo)
         elif categoria_slug and categoria_slug != "todos":
-            servicos = self._repository.buscar_por_categoria(categoria_slug)
-        elif tipo and tipo != "todos":
-            servicos = self._repository.buscar_por_tipo(tipo)
+            unidades = self._repository.buscar_por_categoria(categoria_slug)
+        elif sigla and sigla != "todos":
+            unidades = self._repository.buscar_por_sigla(sigla)
         else:
-            servicos = self._repository.listar_ativos()
+            unidades = self._repository.listar_ativas()
 
-        return [self._para_view_model(servico) for servico in servicos]
+        return [self._para_card(unidade) for unidade in unidades]
 
-    def obter_por_id_para_exibicao(self, servico_id: int) -> ServicoDetailViewModel:
-        """Busca um serviço específico pelo ID para a página de detalhes com mapa."""
-        servico = get_object_or_404(Servico, pk=servico_id)
+    def obter_detalhe(self, unidade_id: int) -> UnidadeDetailViewModel:
+        """Busca uma unidade ativa pelo ID; lança Http404 se não existir."""
+        unidade = self._repository.buscar_por_id(unidade_id)
+        if unidade is None:
+            raise Http404("Unidade não encontrada.")
 
-        return ServicoDetailViewModel(
-            id=servico.id,
-            tipo_sigla=servico.tipo_sigla,
-            nome=servico.nome,
-            descricao=servico.descricao,
-            endereco=servico.endereco,
-            bairro=servico.bairro,
-            cidade=servico.cidade,
-            horario_funcionamento=servico.horario_funcionamento,
-            telefone=servico.telefone,
-            tags=servico.lista_tags(),
-            latitude=float(servico.latitude) if servico.latitude else None,
-            longitude=float(servico.longitude) if servico.longitude else None,
+        servico = unidade.servico
+        return UnidadeDetailViewModel(
+            id=unidade.id,
+            nome=unidade.nome,
+            descricao=unidade.descricao or servico.descricao,
+            endereco=unidade.endereco,
+            bairro=unidade.bairro,
+            cep=unidade.cep,
+            cidade=unidade.cidade,
+            subprefeitura=unidade.subprefeitura,
+            regiao=unidade.get_regiao_display(),
+            horario_funcionamento=unidade.horario_funcionamento,
+            telefone=unidade.telefone,
+            email=unidade.email,
+            organizacao_gestora=unidade.organizacao_gestora,
+            latitude=float(unidade.latitude) if unidade.latitude is not None else None,
+            longitude=float(unidade.longitude) if unidade.longitude is not None else None,
+            acoes=self._nomes_acoes(unidade),
+            sigla=servico.sigla,
+            servico_nome=servico.nome,
+            nivel_protecao=servico.get_nivel_protecao_display(),
+            publico_alvo=servico.publico_alvo,
+            como_acessar=servico.como_acessar,
+            documentos_necessarios=servico.documentos_necessarios,
             categoria_nome=servico.categoria.nome,
         )
 
+    def listar_para_mapa(self) -> list[UnidadeMapaViewModel]:
+        """Unidades com coordenadas, prontas para virar marcadores no mapa."""
+        return [
+            UnidadeMapaViewModel(
+                id=unidade.id,
+                nome=unidade.nome,
+                sigla=unidade.servico.sigla,
+                endereco=f"{unidade.endereco} — {unidade.bairro}",
+                latitude=float(unidade.latitude),
+                longitude=float(unidade.longitude),
+            )
+            for unidade in self._repository.listar_com_coordenadas()
+        ]
+
     @staticmethod
-    def _para_view_model(servico) -> ServicoCardViewModel:
-        return ServicoCardViewModel(
-            id=servico.id,
-            tipo_sigla=servico.tipo_sigla,
-            nome=servico.nome,
-            descricao=servico.descricao,
-            endereco=servico.endereco,
-            bairro_cidade=f"{servico.bairro}, {servico.cidade}",
-            horario_funcionamento=servico.horario_funcionamento,
-            telefone=servico.telefone,
-            tags=servico.lista_tags(),
+    def _nomes_acoes(unidade: Unidade) -> list[str]:
+        # Usa o prefetch feito no repositório (sem nova consulta ao banco).
+        return [acao.nome for acao in unidade.servico.acoes.all()]
+
+    @classmethod
+    def _para_card(cls, unidade: Unidade) -> UnidadeCardViewModel:
+        return UnidadeCardViewModel(
+            id=unidade.id,
+            sigla=unidade.servico.sigla,
+            nome=unidade.nome,
+            descricao=unidade.descricao or unidade.servico.descricao,
+            endereco=unidade.endereco,
+            bairro_cidade=f"{unidade.bairro}, {unidade.cidade}",
+            horario_funcionamento=unidade.horario_funcionamento,
+            telefone=unidade.telefone,
+            acoes=cls._nomes_acoes(unidade),
         )

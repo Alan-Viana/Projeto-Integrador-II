@@ -1,10 +1,10 @@
 from django.urls import path
 
-from .views import ServicoListView, ServicoDetailView
+from .views import UnidadeDetailView, UnidadeListView
 
 app_name = "servicos"
 
 urlpatterns = [
-    path("", ServicoListView.as_view(), name="lista"),
-    path('<int:pk>/', ServicoDetailView.as_view(), name='servico_detail'), # <-- Adicione esta linha
+    path("", UnidadeListView.as_view(), name="lista"),
+    path("<int:pk>/", UnidadeDetailView.as_view(), name="unidade_detail"),
 ]

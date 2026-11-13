@@ -37,35 +37,35 @@
 <section class="servicos-lista">
     <div class="container">
         <div class="row g-4">
-            {% for servico in servicos %}
+            {% for unidade in unidades %}
             <div class="col-lg-6">
-                <a href="{% url 'servicos:servico_detail' servico.id %}" class="text-decoration-none card-link-wrapper">
+                <a href="{% url 'servicos:unidade_detail' unidade.id %}" class="text-decoration-none card-link-wrapper">
                     <article class="servico-card">
-                    <span class="badge-tipo">{{ servico.tipo_sigla }}</span>
-                    <h3 class="servico-nome">{{ servico.nome }}</h3>
-                    <p class="servico-descricao">{{ servico.descricao }}</p>
+                    <span class="badge-tipo">{{ unidade.sigla }}</span>
+                    <h3 class="servico-nome">{{ unidade.nome }}</h3>
+                    <p class="servico-descricao">{{ unidade.descricao|truncatewords:30 }}</p>
 
                     <div class="servico-info">
                         <i class="bi bi-geo-alt"></i>
                         <div>
-                            <div class="servico-endereco">{{ servico.endereco }}</div>
-                            <div class="servico-bairro">{{ servico.bairro_cidade }}</div>
+                            <div class="servico-endereco">{{ unidade.endereco }}</div>
+                            <div class="servico-bairro">{{ unidade.bairro_cidade }}</div>
                         </div>
                     </div>
 
                     <div class="servico-info">
                         <i class="bi bi-clock"></i>
-                        <div>{{ servico.horario_funcionamento }}</div>
+                        <div>{{ unidade.horario_funcionamento|default:"Consulte a unidade" }}</div>
                     </div>
 
                     <div class="servico-info">
                         <i class="bi bi-telephone"></i>
-                        <div>{{ servico.telefone }}</div>
+                        <div>{{ unidade.telefone|default:"Não informado" }}</div>
                     </div>
 
-                    {% if servico.tags %}
+                    {% if unidade.acoes %}
                     <div class="servico-tags">
-                        {% for tag in servico.tags %}
+                        {% for tag in unidade.acoes %}
                             <span class="tag-pill">{{ tag }}</span>
                         {% endfor %}
                     </div>
