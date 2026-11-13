@@ -74,6 +74,23 @@ class UnidadeRepository:
             | Q(servico__acoes__nome__icontains=termo)
         ).distinct()
 
+    def filtrar(
+        self,
+        sigla: str | None = None,
+        categoria_slug: str | None = None,
+        regiao: str | None = None,
+        termo: str | None = None,
+    ) -> QuerySet[Unidade]:
+        """Aplica todos os filtros informados de forma combinada (E lógico)."""
+        unidades = self.buscar_por_termo(termo) if termo else self.listar_ativas()
+        if sigla:
+            unidades = unidades.filter(servico__sigla__iexact=sigla)
+        if categoria_slug:
+            unidades = unidades.filter(servico__categoria__slug=categoria_slug)
+        if regiao:
+            unidades = unidades.filter(regiao__iexact=regiao)
+        return unidades
+
     def listar_com_coordenadas(self) -> QuerySet[Unidade]:
         return self.listar_ativas().filter(
             latitude__isnull=False, longitude__isnull=False

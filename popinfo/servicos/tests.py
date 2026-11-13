@@ -107,7 +107,7 @@ class UnidadeIntegrationTestCase(TestCase):
         _, _, self.unidade = criar_cenario()
 
     def test_fluxo_listagem_exibe_dados_no_html(self):
-        response = self.client.get(reverse("servicos:lista"))
+        response = self.client.get(reverse("servicos:lista"), {"tipo": "TESTE"})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Unidade Vila Esperança")
         self.assertContains(response, "Rua das Flores, 500")
@@ -127,3 +127,45 @@ class UnidadeIntegrationTestCase(TestCase):
         response = self.client.get(reverse("core:mapa"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "-23.54")
+
+
+class ApiTestCase(TestCase):
+    """Testes da API REST (JSON)."""
+
+    def setUp(self):
+        _, _, self.unidade = criar_cenario()
+
+    def test_lista_unidades_filtra_e_pagina(self):
+        resposta = self.client.get(reverse("api:unidades"), {"tipo": "TESTE", "por_pagina": 5})
+        self.assertEqual(resposta.status_code, 200)
+        dados = resposta.json()
+        self.assertEqual(dados["total"], 1)
+        self.assertEqual(dados["resultados"][0]["nome"], "Unidade Vila Esperança")
+        self.assertEqual(dados["resultados"][0]["url"], f"/servicos/{self.unidade.id}/")
+
+    def test_filtros_combinados(self):
+        dados = self.client.get(reverse("api:unidades"), {"tipo": "TESTE", "regiao": "SUL"}).json()
+        self.assertEqual(dados["total"], 0)
+
+    def test_paginacao_dos_dados_importados(self):
+        dados = self.client.get(reverse("api:unidades"), {"tipo": "CRAS", "por_pagina": 10}).json()
+        self.assertEqual(dados["total"], 54)
+        self.assertEqual(dados["paginas"], 6)
+        self.assertEqual(len(dados["resultados"]), 10)
+
+    def test_detalhe_e_404(self):
+        self.assertEqual(self.client.get(reverse("api:unidade", args=[self.unidade.id])).json()["sigla"], "TESTE")
+        self.assertEqual(self.client.get(reverse("api:unidade", args=[999999])).status_code, 404)
+
+    def test_catalogo_de_servicos(self):
+        siglas = [s["sigla"] for s in self.client.get(reverse("api:servicos")).json()["resultados"]]
+        self.assertIn("CRAS", siglas)
+        self.assertNotIn("CTA", siglas)
+
+    def test_metodo_nao_permitido(self):
+        self.assertEqual(self.client.post(reverse("api:unidades")).status_code, 405)
+
+    def test_pagina_de_servicos_paginada_e_com_script(self):
+        resposta = self.client.get(reverse("servicos:lista"), {"tipo": "CRAS"})
+        self.assertContains(resposta, "54 unidades encontradas")
+        self.assertContains(resposta, "js/servicos.js")

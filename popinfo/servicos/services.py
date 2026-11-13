@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from django.core.paginator import Paginator
 from django.http import Http404
 
 from .models import Unidade
@@ -113,6 +114,22 @@ class ServicoService:
         """Siglas exibidas nos filtros rápidos (apenas as que têm unidades)."""
         return self._repository.listar_siglas_com_unidades()
 
+    def listar_catalogo(self) -> list[dict]:
+        """Tipos de serviço ativos com suas ações (para a API)."""
+        return [
+            {
+                "sigla": s.sigla,
+                "nome": s.nome,
+                "categoria": s.categoria.nome,
+                "nivel_protecao": s.get_nivel_protecao_display(),
+                "publico_alvo": s.publico_alvo,
+                "como_acessar": s.como_acessar,
+                "documentos_necessarios": s.documentos_necessarios,
+                "acoes": [a.nome for a in s.acoes.all() if a.ativo],
+            }
+            for s in self._repository.listar_ativos().prefetch_related("acoes")
+        ]
+
 
 class UnidadeService:
     """Regras de negócio relacionadas às unidades de atendimento."""
@@ -142,6 +159,32 @@ class UnidadeService:
             unidades = self._repository.listar_ativas()
 
         return [self._para_card(unidade) for unidade in unidades]
+
+    def pesquisar(
+        self,
+        sigla: str | None = None,
+        categoria_slug: str | None = None,
+        regiao: str | None = None,
+        termo: str | None = None,
+        pagina: int = 1,
+        por_pagina: int = 24,
+    ) -> dict:
+        """Busca paginada com filtros combinados (usada pela API e pela lista)."""
+        por_pagina = max(1, min(por_pagina, 100))
+        unidades = self._repository.filtrar(
+            sigla=None if sigla in (None, "", "todos") else sigla,
+            categoria_slug=categoria_slug or None,
+            regiao=regiao or None,
+            termo=termo or None,
+        )
+        paginador = Paginator(unidades, por_pagina)
+        pagina_atual = paginador.get_page(pagina)
+        return {
+            "total": paginador.count,
+            "pagina": pagina_atual.number,
+            "paginas": paginador.num_pages,
+            "resultados": [self._para_card(u) for u in pagina_atual.object_list],
+        }
 
     def obter_detalhe(self, unidade_id: int) -> UnidadeDetailViewModel:
         """Busca uma unidade ativa pelo ID; lança Http404 se não existir."""

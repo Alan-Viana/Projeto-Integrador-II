@@ -9,6 +9,7 @@ existir diretamente aqui.
 from django.shortcuts import render
 from django.views import View
 
+from .models import Unidade
 from .services import CategoriaService, ServicoService, UnidadeService
 
 
@@ -18,19 +19,30 @@ class UnidadeListView(View):
     template_name = "servicos/lista.html"
 
     def get(self, request):
-        categoria_slug = request.GET.get("categoria")
-        sigla_selecionada = request.GET.get("tipo", "todos")
-        termo_busca = request.GET.get("q", "").strip()
+        p = request.GET
+        categoria_slug = p.get("categoria", "")
+        sigla_selecionada = p.get("tipo", "todos")
+        regiao = p.get("regiao", "")
+        termo_busca = p.get("q", "").strip()
 
+        resultado = UnidadeService().pesquisar(
+            sigla=sigla_selecionada,
+            categoria_slug=categoria_slug,
+            regiao=regiao,
+            termo=termo_busca,
+            pagina=p.get("pagina") or 1,
+        )
         context = {
-            "unidades": UnidadeService().listar_para_exibicao(
-                categoria_slug=categoria_slug,
-                sigla=sigla_selecionada,
-                termo=termo_busca or None,
-            ),
+            "unidades": resultado["resultados"],
+            "total": resultado["total"],
+            "pagina": resultado["pagina"],
+            "paginas": resultado["paginas"],
             "categorias": CategoriaService().listar_categorias(),
             "tipos_servico": ServicoService().listar_siglas_para_filtro(),
+            "regioes": Unidade.Regiao.choices,
             "tipo_selecionado": sigla_selecionada,
+            "categoria_selecionada": categoria_slug,
+            "regiao_selecionada": regiao,
             "termo_busca": termo_busca,
         }
         return render(request, self.template_name, context)

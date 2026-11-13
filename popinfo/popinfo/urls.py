@@ -14,6 +14,7 @@ urlpatterns = [
     path("", include("core.urls")),
     path("servicos/", include("servicos.urls")),
     path("conta/", include("accounts.urls")),
+    path("api/", include("servicos.api")),
 ]
 
 if settings.DEBUG:
