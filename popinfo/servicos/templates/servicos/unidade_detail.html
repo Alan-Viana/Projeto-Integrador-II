@@ -3,103 +3,74 @@
 {% block title %}{{ unidade.nome }} - PopInfo{% endblock %}
 
 {% block content %}
-<div class="servico-detalhe-page container">
-    <!-- Cabeçalho com o nome da unidade -->
-    <div class="servico-detalhe-header">
-        <div class="col-md-12">
-            <p class="text-center mb-2">
-                <span class="badge-tipo" title="{{ unidade.servico_nome }}">{{ unidade.sigla }}</span>
-            </p>
-            <h1 class="fw-bold text-dark text-center">{{ unidade.nome }}</h1>
-            <p class="text-muted fs-5 text-center mb-5">
-                <i class="bi bi-geo-alt text-success me-2" aria-hidden="true"></i>{{ unidade.endereco }} — {{ unidade.bairro }}
-            </p>
-        </div>
-    </div>
+<div class="servico-detalhe-page">
+    <div class="servico-detalhe-container">
+        <main class="servico-detalhe-card servico-detalhe-panel">
+            <section class="servico-detalhe-left" aria-labelledby="unidade-titulo">
+                <header class="servico-detalhe-header">
+                    <h1 id="unidade-titulo">{{ unidade.nome }}</h1>
+                    <span class="visually-hidden">{{ unidade.servico_nome }}</span>
+                </header>
 
-    <!-- Layout em grelha: Detalhes à esquerda e Mapa à direita -->
-    <div class="row g-4 servico-detalhe-grid">
-        <!-- Coluna de Informações -->
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 servico-detalhe-card">
-                <h2 class="h4 fw-bold mb-3 text-success text-center">Detalhes da Unidade</h2>
-                <p class="text-dark lh-lg mb-4">{{ unidade.descricao }}</p>
-
-                {% if unidade.acoes %}
-                <div class="servico-tags mb-4" aria-label="Serviços oferecidos">
-                    {% for acao in unidade.acoes %}
-                        <span class="tag-pill">{{ acao }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <dl class="mb-4">
-                    <dt class="text-muted small">Tipo de serviço</dt>
-                    <dd class="text-dark">{{ unidade.servico_nome }} ({{ unidade.sigla }})</dd>
-
-                    <dt class="text-muted small">Categoria</dt>
-                    <dd><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ unidade.categoria_nome }}</span></dd>
-
+                <div class="servico-detalhe-info-grid">
                     {% if unidade.publico_alvo %}
-                    <dt class="text-muted small">Público atendido</dt>
-                    <dd class="text-dark">{{ unidade.publico_alvo }}</dd>
+                    <div class="servico-detalhe-info-item">
+                        <span class="servico-detalhe-label">Público atendido</span>
+                        <span class="servico-detalhe-value">{{ unidade.publico_alvo }}</span>
+                    </div>
                     {% endif %}
-
                     {% if unidade.como_acessar %}
-                    <dt class="text-muted small">Como acessar</dt>
-                    <dd class="text-dark">{{ unidade.como_acessar }}</dd>
+                    <div class="servico-detalhe-info-item">
+                        <span class="servico-detalhe-label">Como acessar</span>
+                        <span class="servico-detalhe-value">{{ unidade.como_acessar }}</span>
+                    </div>
                     {% endif %}
-
                     {% if unidade.documentos_necessarios %}
-                    <dt class="text-muted small">Documentos necessários</dt>
-                    <dd class="text-dark">{{ unidade.documentos_necessarios }}</dd>
+                    <div class="servico-detalhe-info-item">
+                        <span class="servico-detalhe-label">Documentos necessários</span>
+                        <span class="servico-detalhe-value">{{ unidade.documentos_necessarios }}</span>
+                    </div>
                     {% endif %}
+                    <div class="servico-detalhe-info-item">
+                        <span class="servico-detalhe-label">Horário de funcionamento</span>
+                        <span class="servico-detalhe-value servico-horario-value">{{ unidade.horario_funcionamento|default:"Consulte a unidade" }}</span>
+                    </div>
+                </div>
+            </section>
 
-                    <dt class="text-muted small">Horário de funcionamento</dt>
-                    <dd class="text-dark">{{ unidade.horario_funcionamento|default:"Consulte a unidade" }}</dd>
-
-                    <dt class="text-muted small">Telefone</dt>
-                    <dd class="text-dark">{{ unidade.telefone|default:"Não informado" }}</dd>
-
-                    {% if unidade.email %}
-                    <dt class="text-muted small">E-mail</dt>
-                    <dd><a href="mailto:{{ unidade.email }}">{{ unidade.email }}</a></dd>
-                    {% endif %}
-
-                    <dt class="text-muted small">Endereço completo</dt>
-                    <dd class="text-dark">
-                        {{ unidade.endereco }} — {{ unidade.bairro }}, {{ unidade.cidade }}/SP{% if unidade.cep %} — CEP {{ unidade.cep }}{% endif %}
-                        {% if unidade.subprefeitura %}<br><small class="text-muted">Subprefeitura: {{ unidade.subprefeitura }}{% if unidade.regiao %} (Região {{ unidade.regiao }}){% endif %}</small>{% endif %}
-                    </dd>
-
-                    {% if unidade.organizacao_gestora %}
-                    <dt class="text-muted small">Gestão</dt>
-                    <dd class="text-dark">{{ unidade.organizacao_gestora }}</dd>
-                    {% endif %}
-                </dl>
-
-                <a href="{% url 'servicos:lista' %}" class="btn btn-voltar-lista btn-voltar-desktop mt-auto w-100">
-                    <i class="bi bi-arrow-left me-2" aria-hidden="true"></i> Voltar à Lista
-                </a>
-            </div>
-        </div>
-
-        <!-- Coluna do Mapa -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 servico-mapa-card">
-                <div class="card-body p-0">
+            <section class="servico-detalhe-right">
+                <section class="servico-localizacao" aria-labelledby="localizacao-titulo">
+                    <h2 id="localizacao-titulo">Localização no Mapa</h2>
                     {% if unidade.latitude is not None and unidade.longitude is not None %}
                     <div id="map" class="servico-mapa" role="region" aria-label="Mapa com a localização de {{ unidade.nome }}"></div>
                     {% else %}
-                    <div class="servico-mapa d-flex align-items-center justify-content-center text-muted p-4 text-center">
+                    <div class="servico-mapa servico-mapa-vazio" role="status">
                         Localização no mapa ainda não disponível para esta unidade.
                     </div>
                     {% endif %}
-                </div>
-            </div>
+                </section>
 
-            <a href="{% url 'servicos:lista' %}" class="btn btn-voltar-lista btn-voltar-mobile">
-                <i class="bi bi-arrow-left me-2" aria-hidden="true"></i> Voltar à Lista
+                <div class="servico-right-summary">
+                    <p class="servico-detalhe-endereco">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    {{ unidade.endereco }} — {{ unidade.bairro }}
+                    </p>
+                    <p class="servico-detalhe-subtitulo">{{ unidade.descricao }}</p>
+                    {% if unidade.acoes %}
+                    <div class="servico-tags" aria-label="Serviços oferecidos">
+                    {% for acao in unidade.acoes %}
+                        <span class="tag-pill">{{ acao }}</span>
+                    {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+
+        <div class="servico-detalhe-acoes">
+            <a href="{% url 'servicos:lista' %}" class="btn-voltar-lista">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                Voltar à Lista
             </a>
         </div>
     </div>
@@ -111,10 +82,7 @@
 {{ unidade.nome|json_script:"unidade-nome" }}
 {{ unidade.endereco|json_script:"unidade-endereco" }}
 
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
@@ -123,17 +91,13 @@
 
         var lat = ler("unidade-lat");
         var lng = ler("unidade-lng");
+        var map = L.map("map").setView([lat, lng], 16);
 
-        // Inicializa o mapa centrado no local da unidade
-        var map = L.map('map').setView([lat, lng], 16);
-
-        // Camada base (Esri World Street Map)
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
             maxZoom: 19,
-            attribution: 'Tiles &copy; Esri'
+            attribution: "Tiles &copy; Esri"
         }).addTo(map);
 
-        // Popup montado com nós de texto (evita injeção de HTML)
         var popup = document.createElement("div");
         var titulo = document.createElement("b");
         titulo.textContent = ler("unidade-nome");
@@ -142,8 +106,6 @@
         popup.appendChild(document.createTextNode(ler("unidade-endereco")));
 
         L.marker([lat, lng]).addTo(map).bindPopup(popup).openPopup();
-
-        // Força a atualização do tamanho do mapa no layout
         setTimeout(function () { map.invalidateSize(); }, 150);
     });
 </script>

@@ -161,7 +161,7 @@ def remover_dados_iniciais(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("servicos", "0001_initial"),
+        ("servicos", "0002c_remove_legacy_tipo_sigla"),
     ]
 
     operations = [

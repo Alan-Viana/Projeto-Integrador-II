@@ -32,6 +32,11 @@ class UnidadeListView(View):
             termo=termo_busca,
             pagina=p.get("pagina") or 1,
         )
+        tipos_destaque_categoria = (
+            ServicoService().siglas_por_categoria(categoria_slug)
+            if categoria_slug and sigla_selecionada == "todos"
+            else []
+        )
         context = {
             "unidades": resultado["resultados"],
             "total": resultado["total"],
@@ -42,6 +47,7 @@ class UnidadeListView(View):
             "regioes": Unidade.Regiao.choices,
             "tipo_selecionado": sigla_selecionada,
             "categoria_selecionada": categoria_slug,
+            "tipos_destaque_categoria": tipos_destaque_categoria,
             "regiao_selecionada": regiao,
             "termo_busca": termo_busca,
         }

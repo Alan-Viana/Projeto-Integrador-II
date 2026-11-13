@@ -114,6 +114,14 @@ class ServicoService:
         """Siglas exibidas nos filtros rápidos (apenas as que têm unidades)."""
         return self._repository.listar_siglas_com_unidades()
 
+    def siglas_por_categoria(self, categoria_slug: str) -> list[str]:
+        """Retorna todos os chips pertencentes à categoria selecionada."""
+        siglas_com_unidades = set(self.listar_siglas_para_filtro())
+        siglas_da_categoria = self._repository.listar_ativos().filter(
+            categoria__slug=categoria_slug
+        ).values_list("sigla", flat=True)
+        return [sigla for sigla in siglas_da_categoria if sigla in siglas_com_unidades]
+
     def listar_catalogo(self) -> list[dict]:
         """Tipos de serviço ativos com suas ações (para a API)."""
         return [
@@ -243,7 +251,7 @@ class UnidadeService:
         return UnidadeCardViewModel(
             id=unidade.id,
             sigla=unidade.servico.sigla,
-            nome=unidade.nome,
+            nome=cls._nome_sem_endereco(unidade.nome),
             descricao=unidade.descricao or unidade.servico.descricao,
             endereco=unidade.endereco,
             bairro_cidade=f"{unidade.bairro}, {unidade.cidade}",
@@ -251,3 +259,8 @@ class UnidadeService:
             telefone=unidade.telefone,
             acoes=cls._nomes_acoes(unidade),
         )
+
+    @staticmethod
+    def _nome_sem_endereco(nome: str) -> str:
+        """Mantém no título do card apenas o nome da unidade."""
+        return nome.split(" — ", 1)[0].strip()

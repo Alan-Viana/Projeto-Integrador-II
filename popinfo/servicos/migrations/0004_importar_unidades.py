@@ -42,7 +42,7 @@ def remover(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("servicos", "0002_dados_iniciais"),
+        ("servicos", "0003_dados_iniciais"),
     ]
 
     operations = [

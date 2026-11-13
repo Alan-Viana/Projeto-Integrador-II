@@ -78,6 +78,14 @@ class UnidadeServiceTestCase(TestCase):
         card = self.service.listar_para_exibicao(sigla="TESTE")[0]
         self.assertEqual(card.descricao, self.servico.descricao)
 
+    def test_card_remove_endereco_embutido_no_nome(self):
+        self.unidade.nome = "Unidade Vila Esperança — Rua Principal, 100"
+        self.unidade.save()
+
+        card = self.service.listar_para_exibicao(sigla="TESTE")[0]
+
+        self.assertEqual(card.nome, "Unidade Vila Esperança")
+
     def test_busca_por_termo_encontra_pela_acao(self):
         cards = self.service.listar_para_exibicao(termo="cadastro")
         self.assertIn("Unidade Vila Esperança", [c.nome for c in cards])

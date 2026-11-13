@@ -25,13 +25,6 @@
                 <i class="bi bi-search" aria-hidden="true"></i>
                 <label for="campo-busca" class="visually-hidden">Buscar unidades</label>
                 <input type="text" id="campo-busca" name="q" value="{{ termo_busca }}" class="form-control" placeholder="Busque por nome, bairro ou serviço...">
-                <label for="filtro-regiao" class="visually-hidden">Região</label>
-                <select id="filtro-regiao" name="regiao" class="form-select w-auto">
-                    <option value="">Todas as regiões</option>
-                    {% for valor, rotulo in regioes %}
-                    <option value="{{ valor }}" {% if regiao_selecionada == valor %}selected{% endif %}>{{ rotulo }}</option>
-                    {% endfor %}
-                </select>
                 <button type="submit" class="btn btn-ver-mapa">
                     <i class="bi bi-search" aria-hidden="true"></i> Buscar
                 </button>
@@ -40,7 +33,7 @@
             <div class="filtros-chips" role="group" aria-label="Filtrar por tipo de serviço">
                 <a href="?tipo=todos" data-tipo="todos" class="chip {% if tipo_selecionado == 'todos' %}chip-active{% endif %}">Todos</a>
                 {% for tipo in tipos_servico %}
-                    <a href="?tipo={{ tipo|urlencode }}" data-tipo="{{ tipo }}" class="chip {% if tipo_selecionado == tipo %}chip-active{% endif %}">{{ tipo }}</a>
+                    <a href="?tipo={{ tipo|urlencode }}" data-tipo="{{ tipo }}" class="chip {% if tipo_selecionado == tipo or tipo in tipos_destaque_categoria %}chip-active{% endif %}">{{ tipo }}</a>
                 {% endfor %}
             </div>
         </form>

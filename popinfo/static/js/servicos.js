@@ -139,7 +139,9 @@
         buscar(1, false);
     });
 
-    form.elements.regiao.addEventListener("change", function () { buscar(1, false); });
+    if (form.elements.regiao) {
+        form.elements.regiao.addEventListener("change", function () { buscar(1, false); });
+    }
 
     // Busca enquanto digita (aguarda o usuário parar por 400 ms)
     campoBusca.addEventListener("input", function () {
