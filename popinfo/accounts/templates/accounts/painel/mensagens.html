@@ -1,0 +1,40 @@
+{% extends "accounts/painel/base_painel.html" %}
+
+{% block painel %}
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <label for="f-assunto" class="visually-hidden">Assunto</label>
+    <select id="f-assunto" name="assunto" class="form-select w-auto">
+        <option value="">Todos os assuntos</option>
+        {% for valor, rotulo in assuntos %}<option value="{{ valor }}" {% if request.GET.assunto == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+    </select>
+    <label for="f-status" class="visually-hidden">Status</label>
+    <select id="f-status" name="status" class="form-select w-auto">
+        <option value="">Todas</option>
+        <option value="nao_lidas" {% if request.GET.status == 'nao_lidas' %}selected{% endif %}>Não lidas</option>
+        <option value="lidas" {% if request.GET.status == 'lidas' %}selected{% endif %}>Lidas</option>
+    </select>
+    <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+    <span class="text-muted ms-auto">{{ nao_lidas }} não lida{{ nao_lidas|pluralize }}</span>
+</form>
+
+{% for m in object_list %}
+<article class="servico-card mb-3 {% if not m.lida %}border border-2 border-success{% endif %}">
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+        <span class="badge-tipo">{{ m.get_assunto_display }}</span>
+        <small class="text-muted">{{ m.recebida_em|date:"d/m/Y H:i" }}</small>
+    </div>
+    <h3 class="servico-nome mt-2">{{ m.nome_completo }}</h3>
+    <p class="mb-2"><a href="mailto:{{ m.email }}">{{ m.email }}</a>{% if m.telefone %} · {{ m.telefone }}{% endif %}</p>
+    <p class="servico-descricao" style="white-space: pre-line">{{ m.mensagem }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ m.pk }}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">
+            {% if m.lida %}Marcar como não lida{% else %}Marcar como lida{% endif %}
+        </button>
+    </form>
+</article>
+{% empty %}
+<p class="text-center text-muted py-4">Nenhuma mensagem recebida.</p>
+{% endfor %}
+{% endblock %}

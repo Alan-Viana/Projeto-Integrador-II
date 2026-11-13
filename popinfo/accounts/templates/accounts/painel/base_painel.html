@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Área Restrita — PopInfo{% endblock %}
+
+{% block content %}
+<section class="page-header text-center">
+    <div class="container">
+        <h1 class="page-title">Área Restrita</h1>
+        <p class="page-subtitle">Olá, {{ request.user.perfil.nome|default:request.user.username }}. Gerencie as informações do PopInfo.</p>
+        <nav aria-label="Seções da Área Restrita" class="filtros-chips justify-content-center mt-3">
+            {% with secao=request.resolver_match.url_name %}
+            <a href="{% url 'accounts:painel_unidades' %}" class="chip {% if 'unidade' in secao %}chip-active{% endif %}" {% if 'unidade' in secao %}aria-current="page"{% endif %}>
+                <i class="bi bi-building" aria-hidden="true"></i> Unidades
+            </a>
+            <a href="{% url 'accounts:painel_usuarios' %}" class="chip {% if secao == 'painel_usuarios' %}chip-active{% endif %}" {% if secao == 'painel_usuarios' %}aria-current="page"{% endif %}>
+                <i class="bi bi-people" aria-hidden="true"></i> Usuários
+            </a>
+            <a href="{% url 'accounts:painel_mensagens' %}" class="chip {% if secao == 'painel_mensagens' %}chip-active{% endif %}" {% if secao == 'painel_mensagens' %}aria-current="page"{% endif %}>
+                <i class="bi bi-envelope" aria-hidden="true"></i> Mensagens
+            </a>
+            {% endwith %}
+        </nav>
+    </div>
+</section>
+
+<section class="servicos-lista">
+    <div class="container">
+        {% block painel %}{% endblock %}
+
+        {% if is_paginated %}
+        <nav class="d-flex justify-content-center gap-2 mt-4" aria-label="Paginação">
+            {% if page_obj.has_previous %}<a class="btn btn-outline-secondary" href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+            <span class="align-self-center">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-outline-secondary" href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
+        </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

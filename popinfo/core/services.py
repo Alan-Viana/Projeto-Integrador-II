@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 
 from .forms import ContatoForm
+from .models import Mensagem
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class ContatoService:
         e-mail transacional.
         """
         dados = form.cleaned_data
+        Mensagem.objects.create(**dados)
         logger.info(
             "Nova mensagem de contato recebida de %s <%s> - assunto: %s",
             dados["nome_completo"],

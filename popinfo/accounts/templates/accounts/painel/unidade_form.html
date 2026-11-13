@@ -1,0 +1,9 @@
+{% extends "accounts/painel/base_painel.html" %}
+
+{% block painel %}
+<div class="servico-card">
+    <h2 class="h4 mb-4">{% if object %}Editar unidade: {{ object.nome }}{% else %}Nova unidade{% endif %}</h2>
+    {% include "accounts/painel/_form.html" %}
+    <a href="{% url 'accounts:painel_unidades' %}" class="btn btn-outline-secondary mt-2">Cancelar</a>
+</div>
+{% endblock %}

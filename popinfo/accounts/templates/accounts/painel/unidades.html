@@ -1,0 +1,42 @@
+{% extends "accounts/painel/base_painel.html" %}
+
+{% block painel %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <form method="get" class="d-flex gap-2" role="search">
+        <label for="busca-painel" class="visually-hidden">Buscar unidade</label>
+        <input type="search" id="busca-painel" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Nome, bairro ou tipo...">
+        <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+    </form>
+    <a href="{% url 'accounts:unidade_criar' %}" class="btn btn-enviar"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova unidade</a>
+</div>
+
+<p class="text-muted">{{ paginator.count }} unidade{{ paginator.count|pluralize }}</p>
+
+<div class="table-responsive servico-card p-0">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr><th scope="col">Tipo</th><th scope="col">Nome</th><th scope="col">Bairro</th><th scope="col">Ativa</th><th scope="col" class="text-end">Ações</th></tr>
+        </thead>
+        <tbody>
+            {% for unidade in object_list %}
+            <tr>
+                <td><span class="badge-tipo">{{ unidade.servico.sigla }}</span></td>
+                <td>{{ unidade.nome }}</td>
+                <td>{{ unidade.bairro }}</td>
+                <td>{% if unidade.ativo %}Sim{% else %}<span class="text-danger">Não</span>{% endif %}</td>
+                <td class="text-end text-nowrap">
+                    <a href="{% url 'accounts:unidade_editar' unidade.pk %}" class="btn btn-sm btn-outline-secondary" aria-label="Editar {{ unidade.nome }}"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                    <form method="post" action="{% url 'accounts:unidade_excluir' unidade.pk %}" class="d-inline"
+                          onsubmit="return confirm('Excluir a unidade &quot;{{ unidade.nome|escapejs }}&quot;?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Excluir {{ unidade.nome }}"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Nenhuma unidade encontrada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

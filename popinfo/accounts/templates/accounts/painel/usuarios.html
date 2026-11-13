@@ -1,0 +1,27 @@
+{% extends "accounts/painel/base_painel.html" %}
+
+{% block painel %}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="servico-card">
+            <h2 class="h4 mb-4">Cadastrar novo usuário</h2>
+            {% include "accounts/painel/_form.html" %}
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="servico-card">
+            <h2 class="h4 mb-3">Usuários cadastrados</h2>
+            <ul class="list-unstyled mb-0">
+                {% for u in usuarios %}
+                <li class="py-2 border-bottom">
+                    <strong>{{ u.nome }}</strong> <span class="text-muted">({{ u.user.username }})</span><br>
+                    <small class="text-muted">{{ u.cargo|default:"—" }} · {{ u.user.email }}</small>
+                </li>
+                {% empty %}
+                <li class="text-muted">Nenhum usuário cadastrado.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

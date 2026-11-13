@@ -1,18 +1,17 @@
 """Camada de Service da aplicação de autenticação."""
 from __future__ import annotations
 
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, get_user_model
 
 
 class AutenticacaoService:
     """Regras de negócio relacionadas à autenticação de usuários."""
 
-    def autenticar(self, email: str, senha: str) -> User | None:
-        """Autentica um usuário da Área Restrita pelo e-mail e senha.
-
-        Usuários administrativos devem ser criados com o e-mail também
-        preenchido no campo "username" (comportamento padrão de
-        `createsuperuser` ao informar o e-mail quando solicitado).
-        """
-        return authenticate(username=email, password=senha)
+    def autenticar(self, email: str, senha: str):
+        """Autentica pelo nome de usuário ou, se não houver, pelo e-mail."""
+        usuario = authenticate(username=email, password=senha)
+        if usuario is None and "@" in email:
+            conta = get_user_model().objects.filter(email__iexact=email).first()
+            if conta:
+                usuario = authenticate(username=conta.username, password=senha)
+        return usuario

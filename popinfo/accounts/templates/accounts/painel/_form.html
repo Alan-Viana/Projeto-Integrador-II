@@ -1,0 +1,19 @@
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% for erro in form.non_field_errors %}<div class="alert alert-danger">{{ erro }}</div>{% endfor %}
+    <div class="row g-3">
+        {% for campo in form %}
+        <div class="{% if campo.field.widget.input_type == 'checkbox' %}col-12 form-check ms-2{% elif campo.name == 'descricao' %}col-12{% else %}col-md-6{% endif %}">
+            {% if campo.field.widget.input_type == 'checkbox' %}
+                {{ campo }} <label class="form-check-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+            {% else %}
+                <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} *{% endif %}</label>
+                {{ campo }}
+            {% endif %}
+            {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
+            {% for erro in campo.errors %}<div class="invalid-feedback d-block">{{ erro }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-enviar mt-4">Salvar</button>
+</form>
